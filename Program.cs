@@ -113,9 +113,9 @@ namespace Voxelia
             Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
             Gl.BufferData<float>(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), vertices, BufferUsageARB.StaticDraw);
 
-            _tbo = Gl.GenBuffer();
-            Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _tbo);
-            Gl.BufferData<float>(BufferTargetARB.ArrayBuffer, (nuint)(TexCoords.Length * sizeof(float)), TexCoords, BufferUsageARB.StaticDraw);
+            //_tbo = Gl.GenBuffer();
+            //Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _tbo);
+            //Gl.BufferData<float>(BufferTargetARB.ArrayBuffer, (nuint)(TexCoords.Length * sizeof(float)), TexCoords, BufferUsageARB.StaticDraw);
             
             _ebo = Gl.GenBuffer();
             Gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
@@ -125,14 +125,14 @@ namespace Voxelia
             #version 330 core
 
             layout (location = 0) in vec3 aPosition;
-            layout (location = 1) in vec2 aTexCoord;
+            layout (location = 1) in vec2 aTexCoords;
 
             out vec2 frag_TexCoords;
 
             void main() 
             {
                 gl_Position = vec4(aPosition, 1.0);
-                frag_TexCoords = aTexCoord;
+                frag_TexCoords = aTexCoords;
             }";
 
             const string fragmentCode = @"
@@ -198,20 +198,26 @@ namespace Voxelia
             Gl.ActiveTexture(TextureUnit.Texture0);
             Gl.BindTexture(TextureTarget.Texture2D, _texture);
 
-            // ImageResult.FromMemory reads the bytes of the .png file and returns all its information!
             if (!File.Exists("Assets/GLEE.png"))
             {
                 Console.WriteLine("buh");
             }
+
+            // ImageResult.FromMemory reads the bytes of the .png file and returns all its information!
             ImageResult result = ImageResult.FromMemory(File.ReadAllBytes("Assets/GLEE.png"), ColorComponents.RedGreenBlueAlpha);
         
             Gl.TexImage2D<byte>(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)result.Width,
                 (uint)result.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, result.Data);
             
-            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapS, (int)TextureWrapMode.Repeat);
-            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapT, (int)TextureWrapMode.Repeat);
-            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            int wrapS = (int)TextureWrapMode.Repeat;
+            int wrapT = (int)TextureWrapMode.Repeat;
+            int minFilter = (int)TextureMinFilter.Nearest;
+            int magFilter = (int)TextureMagFilter.Nearest;
+            
+            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapS, ref wrapS);
+            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapT, ref wrapT);
+            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMinFilter, ref minFilter);
+            Gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMagFilter, ref magFilter);
 
             Gl.BindTexture(TextureTarget.Texture2D, 0);
         

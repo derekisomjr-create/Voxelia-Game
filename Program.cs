@@ -97,10 +97,10 @@ namespace Voxelia
 
             float[] TexCoords =
             {
-                1.0f, 1.0f,
+                1.0f, -1.0f,
                 1.0f, 0.0f,
                 0.0f, 0.0f,
-                0.0f, 1.0f
+                0.0f, -1.0f
             };
 
             uint[] indices =
@@ -113,13 +113,23 @@ namespace Voxelia
             Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
             Gl.BufferData<float>(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), vertices, BufferUsageARB.StaticDraw);
 
+            const uint positionLox = 0;
+            Gl.EnableVertexAttribArray(positionLox);
+            Gl.VertexAttribPointer(positionLox, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*) 0);
+            
             _tbo = Gl.GenBuffer();
             Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _tbo);
             Gl.BufferData<float>(BufferTargetARB.ArrayBuffer, (nuint)(TexCoords.Length * sizeof(float)), TexCoords, BufferUsageARB.StaticDraw);
-            
+
+            const uint texcoordLox = 1;
+            Gl.EnableVertexAttribArray(texcoordLox);
+            Gl.VertexAttribPointer(texcoordLox, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), (void*) 0);
+
             _ebo = Gl.GenBuffer();
             Gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
             Gl.BufferData<uint>(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), indices, BufferUsageARB.StaticDraw);
+
+            
         
             const string vertexCode = @"
             #version 330 core
@@ -131,8 +141,8 @@ namespace Voxelia
 
             void main() 
             {
-                gl_Position = vec4(aPosition, 1.0);
                 frag_TexCoords = aTexCoord;
+                gl_Position = vec4(aPosition, 1);
             }";
 
             const string fragmentCode = @"
@@ -145,13 +155,12 @@ namespace Voxelia
 
             void main()
             {
-                // -out_color = vec4(frag_TexCoords.x, frag_TexCoords.y, 0, 1.0);
+                //out_color = vec4(1.0, 0.5, 0.2, 1.0);
                 out_color = texture(uTexture, frag_TexCoords);
             }";
 
             uint vertexShader = Gl.CreateShader(ShaderType.VertexShader);
             Gl.ShaderSource(vertexShader, vertexCode);
-
             Gl.CompileShader(vertexShader);
 
             Gl.GetShader(vertexShader, ShaderParameterName.CompileStatus, out int vStatus);
@@ -160,14 +169,13 @@ namespace Voxelia
 
             uint fragmentShader = Gl.CreateShader(ShaderType.FragmentShader);
             Gl.ShaderSource(fragmentShader, fragmentCode);
-
             Gl.CompileShader(fragmentShader);
 
             Gl.GetShader(fragmentShader, ShaderParameterName.CompileStatus, out int fStatus);
             if (fStatus != (int) GLEnum.True)
                 throw new Exception("Fragment shader failed to compile: " + Gl.GetShaderInfoLog(fragmentShader));
-            _program = Gl.CreateProgram();
 
+            _program = Gl.CreateProgram();
             Gl.AttachShader(_program, vertexShader);
             Gl.AttachShader(_program, fragmentShader);
 
@@ -182,13 +190,11 @@ namespace Voxelia
             Gl.DeleteShader(vertexShader);
             Gl.DeleteShader(fragmentShader); 
 
-            const uint positionLox = 0;
-            Gl.EnableVertexAttribArray(positionLox);
-            Gl.VertexAttribPointer(positionLox, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), (void*) 0);
+            
 
-            const uint texcoordLox = 1;
-            Gl.EnableVertexAttribArray(texcoordLox);
-            Gl.VertexAttribPointer(texcoordLox, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), (void*) 0);
+            
+            
+            
 
             Gl.BindVertexArray(0);
             Gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);

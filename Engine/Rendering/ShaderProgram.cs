@@ -6,11 +6,11 @@ using Silk.NET.OpenGL;
 
 namespace Voxelia.Engine.Rendering
 {
-    public class Shader
+    public class ShaderProgram
     {
         public uint Id { get; private set; }
 
-        public Shader(string vsPath, string fsPath)
+        public ShaderProgram(string vsPath, string fsPath)
         {
             using GL gl = Program.Gl;
 

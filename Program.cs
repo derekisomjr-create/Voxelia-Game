@@ -9,6 +9,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using StbImageSharp;
+using Voxelia.Engine.Rendering;
 
 namespace Voxelia
 {
@@ -16,12 +17,12 @@ namespace Voxelia
     {   
         private static uint _texture;
         private static uint _tbo;
-        private static uint _program;
         private static uint _ebo;
         private static uint _vao;  
         private static uint _vbo;
         public static GL Gl { get; private set; }   
         private static IWindow _window;
+        private static ShaderProgram _shader;
         
         public static void Main()
         {
@@ -68,7 +69,7 @@ namespace Voxelia
             Gl.Clear(ClearBufferMask.ColorBufferBit);
 
             Gl.BindVertexArray(_vao);
-            Gl.UseProgram(_program);
+            _shader.Use();
             Gl.ActiveTexture(TextureUnit.Texture0);
             Gl.BindTexture(TextureTarget.Texture2D, _texture);
             Gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
@@ -86,6 +87,8 @@ namespace Voxelia
 
             _vao = Gl.GenVertexArray();
             Gl.BindVertexArray(_vao);
+
+            _shader = new("Assets/Shaders/default.vert", "Assets/Shaders/default.frag");
 
             float[] vertices =
             {
@@ -129,73 +132,6 @@ namespace Voxelia
             Gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
             Gl.BufferData<uint>(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), indices, BufferUsageARB.StaticDraw);
 
-            
-        
-            const string vertexCode = @"
-            #version 330 core
-
-            layout (location = 0) in vec3 aPosition;
-            layout (location = 1) in vec2 aTexCoord;
-
-            out vec2 frag_TexCoords;
-
-            void main() 
-            {
-                frag_TexCoords = aTexCoord;
-                gl_Position = vec4(aPosition, 1);
-            }";
-
-            const string fragmentCode = @"
-            #version 330 core
-            
-            uniform sampler2D uTexture;
-
-            out vec4 out_color;
-            in vec2 frag_TexCoords;
-
-            void main()
-            {
-                //out_color = vec4(1.0, 0.5, 0.2, 1.0);
-                out_color = texture(uTexture, frag_TexCoords);
-            }";
-
-            uint vertexShader = Gl.CreateShader(ShaderType.VertexShader);
-            Gl.ShaderSource(vertexShader, vertexCode);
-            Gl.CompileShader(vertexShader);
-
-            Gl.GetShader(vertexShader, ShaderParameterName.CompileStatus, out int vStatus);
-            if (vStatus != (int) GLEnum.True)
-                throw new Exception("Vertex shader failed to compile: " + Gl.GetShaderInfoLog(vertexShader));
-
-            uint fragmentShader = Gl.CreateShader(ShaderType.FragmentShader);
-            Gl.ShaderSource(fragmentShader, fragmentCode);
-            Gl.CompileShader(fragmentShader);
-
-            Gl.GetShader(fragmentShader, ShaderParameterName.CompileStatus, out int fStatus);
-            if (fStatus != (int) GLEnum.True)
-                throw new Exception("Fragment shader failed to compile: " + Gl.GetShaderInfoLog(fragmentShader));
-
-            _program = Gl.CreateProgram();
-            Gl.AttachShader(_program, vertexShader);
-            Gl.AttachShader(_program, fragmentShader);
-
-            Gl.LinkProgram(_program);
-
-            Gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
-            if (lStatus != (int) GLEnum.True)
-                throw new Exception("Program failed to link: " + Gl.GetProgramInfoLog(_program));
-
-            Gl.DetachShader(_program, vertexShader);
-            Gl.DetachShader(_program, fragmentShader);
-            Gl.DeleteShader(vertexShader);
-            Gl.DeleteShader(fragmentShader); 
-
-            
-
-            
-            
-            
-
             Gl.BindVertexArray(0);
             Gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
             Gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
@@ -227,7 +163,7 @@ namespace Voxelia
 
             Gl.BindTexture(TextureTarget.Texture2D, 0);
         
-            int texLoc = Gl.GetUniformLocation(_program, "uTexture");
+            int texLoc = Gl.GetUniformLocation(_shader.Id, "uTexture");
             Gl.Uniform1(texLoc, 0);
         } 
     }

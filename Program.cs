@@ -190,12 +190,6 @@ namespace Voxelia
             Gl.DeleteShader(vertexShader);
             Gl.DeleteShader(fragmentShader); 
 
-            
-
-            
-            
-            
-
             Gl.BindVertexArray(0);
             Gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
             Gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);

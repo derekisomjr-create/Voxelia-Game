@@ -9,6 +9,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using StbImageSharp;
+using Voxelia.Engine.Components;
 using Voxelia.Engine.Rendering;
 
 namespace Voxelia

@@ -5,7 +5,7 @@ using Silk.NET.Maths;
 
 namespace Voxelia.Engine.Components
 {
-    class Transform
+    public class Transform
     {
         public Vector3D<float> Position;
         public Vector3D<float> Rotation;

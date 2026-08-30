@@ -26,10 +26,10 @@ namespace Voxelia.Engine.Components
 
         internal Camera(Transform transform, float fov, float clipNear, float clipFar) : this()
         {
-            this.Transform = transform;
-            this.Fov = fov;
-            this.ClipNear = clipNear;
-            this.ClipFar = clipFar;
+            Transform = transform;
+            Fov = fov;
+            ClipNear = clipNear;
+            ClipFar = clipFar;
         }
 
         public Matrix4X4<float> ViewMatrix

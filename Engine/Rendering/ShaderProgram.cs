@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Silk.NET;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 namespace Voxelia.Engine.Rendering
@@ -84,6 +85,36 @@ namespace Voxelia.Engine.Rendering
             }
 
             return result;
+        }
+
+        public void SetIntUniform(int loc, int value)
+        {
+            Program.Gl.Uniform1(loc, value);
+        }
+
+        public void SetFloatUniform(int loc, float value)
+        {
+            Program.Gl.Uniform1(loc, value);
+        }
+
+        public unsafe void SetMatrix4x4Uniform(int loc, float *value)
+        {
+            Program.Gl.UniformMatrix4(loc, 1, false, value);
+        }
+
+        public void SetVec2Uniform(int loc, Vector2D<float> value)
+        {
+            Program.Gl.Uniform2(loc, value.X, value.Y);
+        }
+
+        public void SetVec3Uniform(int loc, Vector3D<float> value)
+        {
+            Program.Gl.Uniform3(loc, value.X, value.Y, value.Z);
+        }
+
+        public void SetVec4Uniform(int loc, Vector4D<float> value)
+        {
+            Program.Gl.Uniform4(loc, value.X, value.Y, value.Z, value.W);
         }
     }
 }

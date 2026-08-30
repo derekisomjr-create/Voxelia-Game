@@ -21,9 +21,13 @@ namespace Voxelia
         private static uint _ebo;
         private static uint _vao;  
         private static uint _vbo;
+
+        private static int projectionLox, viewLoc, modelLoc;
+
         public static GL Gl { get; private set; }   
         private static IWindow _window;
         private static ShaderProgram _shader;
+        private static Camera _camera;
         
         public static void Main()
         {
@@ -31,7 +35,7 @@ namespace Voxelia
 
             WindowOptions options = WindowOptions.Default with
             {
-                Size = new Vector2D<int>(800, 600),
+                Size = new Vector2D<int>(1280, 720),
                 Title = "Voxelia"
             };
             
@@ -41,6 +45,7 @@ namespace Voxelia
             _window.Load   += OnLoad;
             _window.Update += OnUpdate;
             _window.Render += OnRender;
+            _window.FramebufferResize += OnResize;
 
             _window.Run();
 
@@ -50,6 +55,11 @@ namespace Voxelia
         {
             if (key == Key.Escape)
                 _window.Close();
+
+            if (key == Key.ShiftLeft)
+            {
+                _camera.Transform.Position.Y += 1.0e23f;
+            }
         }
 
         private static void FordFocus(bool isFocused)
@@ -60,9 +70,21 @@ namespace Voxelia
             }
         }
 
-        private static void OnUpdate(double deltaTime)
+        private static void OnResize(Vector2D<int> newSize)
         {
+            _camera.Aspect = (float) newSize.X / (float)newSize.Y;
+            Gl.Viewport(newSize);
+        }
+
+        private static unsafe void OnUpdate(double deltaTime)
+        {
+            Matrix4X4<float> view = _camera.ViewMatrix;
+            Matrix4X4<float> projection = _camera.ProjectionMatrix;
+            Matrix4X4<float> model = Matrix4X4<float>.Identity;
             
+            _shader.SetMatrix4x4Uniform(viewLoc, (float*)&view);
+            _shader.SetMatrix4x4Uniform(projectionLox, (float*)&projection);
+            _shader.SetMatrix4x4Uniform(modelLoc, (float*)&model);
         }
 
         private static unsafe void OnRender(double deltaTime)
@@ -90,6 +112,11 @@ namespace Voxelia
             Gl.BindVertexArray(_vao);
 
             _shader = new("Assets/Shaders/default.vert", "Assets/Shaders/default.frag");
+            _camera = new Camera(new Transform(new Vector3D<float>(0.0f, 0.0f, 3.0f), new Vector3D<float>(0.0f, 0.0f, 0.0f), Vector3D<float>.One), 60.0f, 0.01f, 1000.0f);
+
+            projectionLox = _shader.GetUniformLoc("_projection");
+            viewLoc = _shader.GetUniformLoc("_view");
+            modelLoc = _shader.GetUniformLoc("_model");
 
             float[] vertices =
             {
@@ -164,8 +191,8 @@ namespace Voxelia
 
             Gl.BindTexture(TextureTarget.Texture2D, 0);
         
-            int texLoc = Gl.GetUniformLocation(_shader.Id, "uTexture");
-            Gl.Uniform1(texLoc, 0);
+            int texLoc = _shader.GetUniformLoc("uTexture");
+            _shader.SetIntUniform(texLoc, 0);
         } 
     }
 }
